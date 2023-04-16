@@ -1,0 +1,20 @@
+
+.column__list{
+    height: calc(100% - 52px);
+
+    margin-top: 20px;
+    padding: 20px;
+
+    border: 4px solid rgba(128, 128, 128, 0.508);
+    border-radius: 8px;
+
+    background-color: rgb(232, 240, 254);
+}
+.column__item{
+    &:not(:last-child){
+        margin-bottom: 10px;
+    }
+}
+.column__title{
+    text-align: center;
+}
