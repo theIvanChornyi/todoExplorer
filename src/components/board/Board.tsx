@@ -6,31 +6,18 @@ import {
 	Droppable,
 } from 'react-beautiful-dnd';
 import { useSelector } from 'react-redux';
-import { useState } from 'react';
-
-import { getAllIssue } from 'redux/repo/selectors.repo';
 import style from './Board.module.scss';
-import { BoardsType } from './Board.types';
 import { IIssue } from 'service/API/types';
 import { cooldownDate } from 'helpers';
-
-const boardsInit: BoardsType = [
-	{ boadrId: 'col-2', title: 'In Progress', items: [] },
-	{ boadrId: 'col-3', title: 'Done', items: [] },
-];
+import { selectCurrentBoard } from 'redux/boards/selectors.boards';
+import { useDispatch } from 'react-redux';
+import { reorderBetweenCol, reorderInsideCol } from 'redux/boards/slice.boards';
 
 const Board = () => {
-	const issues = useSelector(getAllIssue);
-	const [boards, setBoards] = useState<BoardsType>([
-		{
-			items: issues,
-			boadrId: 'col-1',
-			title: 'ToDo',
-		},
-		...boardsInit,
-	]);
+	const dispatch = useDispatch();
+	const boards = useSelector(selectCurrentBoard);
 
-	const onDragEnd = ({ destination, source, draggableId }: DropResult) => {
+	const onDragEnd = ({ destination, source }: DropResult) => {
 		if (!destination) {
 			return;
 		}
@@ -40,9 +27,31 @@ const Board = () => {
 		) {
 			return;
 		}
-		console.log('destination', destination);
-		console.log('draggableId', draggableId);
-		console.log('source', source);
+		const startColumn = boards[source.droppableId];
+		const finishColumn = boards[destination.droppableId];
+
+		if (startColumn === finishColumn) {
+			const newCardsArr: IIssue[] = Array.from(startColumn.items);
+			const deleted = newCardsArr.splice(source.index, 1);
+			newCardsArr.splice(destination.index, 0, ...deleted);
+
+			return dispatch(
+				reorderInsideCol({ items: newCardsArr, title: source.droppableId })
+			);
+		}
+
+		const newStartCardsArr: IIssue[] = Array.from(startColumn.items);
+		const deleted = newStartCardsArr.splice(source.index, 1);
+
+		const newFinishIds: IIssue[] = Array.from(finishColumn.items);
+		newFinishIds.splice(destination.index, 0, ...deleted);
+
+		dispatch(
+			reorderBetweenCol([
+				{ title: source.droppableId, items: newStartCardsArr },
+				{ title: destination.droppableId, items: newFinishIds },
+			])
+		);
 	};
 
 	const cardList = (items: IIssue[]) => {
@@ -68,25 +77,28 @@ const Board = () => {
 	};
 
 	return (
-		<Row justify="space-between" align="stretch" gutter={[16, 16]}>
+		<Row justify="space-between" align="stretch" gutter={16}>
 			<DragDropContext onDragEnd={onDragEnd}>
-				{boards.map(({ boadrId, title, items }) => (
-					<Col span={7} key={boadrId}>
-						<h2 className={style.column__title}>{title}</h2>
-						<Droppable droppableId={boadrId}>
-							{provided => (
-								<ul
-									className={style.column__list}
-									ref={provided.innerRef}
-									{...provided.droppableProps}
-								>
-									{cardList(items)}
-									{provided.placeholder}
-								</ul>
-							)}
-						</Droppable>
-					</Col>
-				))}
+				{Object.keys(boards).map(key => {
+					const { title, items } = boards[key];
+					return (
+						<Col span={8} key={title}>
+							<h2 className={style.column__title}>{title}</h2>
+							<Droppable droppableId={title}>
+								{provided => (
+									<ul
+										className={style.column__list}
+										ref={provided.innerRef}
+										{...provided.droppableProps}
+									>
+										{cardList(items)}
+										{provided.placeholder}
+									</ul>
+								)}
+							</Droppable>
+						</Col>
+					);
+				})}
 			</DragDropContext>
 		</Row>
 	);

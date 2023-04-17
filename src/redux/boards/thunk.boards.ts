@@ -3,7 +3,7 @@ import { GithubApi } from 'service/API';
 const github = new GithubApi();
 
 export const getIssues = createAsyncThunk(
-	'repo/getIssues',
+	'boards/getIssues',
 	async (request: string, thunkAPI) => {
 		try {
 			const data = await github.getTodos(GithubApi.parseRepoURI(request));
