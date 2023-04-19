@@ -1,17 +1,33 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import { AxiosError } from 'axios';
 import { GithubApi } from 'service/API';
+import { IResponse } from 'service/API/types';
 const github = new GithubApi();
 
-export const getIssues = createAsyncThunk(
-	'boards/getIssues',
+interface IData {
+	data: IResponse[];
+	request: string;
+}
+
+interface IReject {
+	rejectValue: { code: number; message: string };
+}
+
+export const fetchIssues = createAsyncThunk<IData, string, IReject>(
+	'boards/fetchIssues',
 	async (request: string, thunkAPI) => {
 		try {
-			const data = await github.getTodos(GithubApi.parseRepoURI(request));
+			const data = await github.getIssues(GithubApi.parseRepoURI(request));
+			if (data.length === 0) {
+				return thunkAPI.rejectWithValue({ code: 400, message: 'Issues empty' });
+			}
 			return { data, request };
 		} catch (e) {
-			if (e instanceof Error) {
-				thunkAPI.rejectWithValue(e.message);
-			}
+			const err = e as AxiosError;
+			return thunkAPI.rejectWithValue({
+				code: err.response?.status ? err.response?.status : 400,
+				message: err.code ? err.code : 'Bad request',
+			});
 		}
 	}
 );

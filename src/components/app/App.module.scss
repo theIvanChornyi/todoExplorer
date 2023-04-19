@@ -1,3 +1,9 @@
+@import '../../variables.scss';
 .section{
     padding: 40px 0; 
+}
+.title{
+    margin-top: 80px;
+    text-align: center;
+    color:$text-color
 }

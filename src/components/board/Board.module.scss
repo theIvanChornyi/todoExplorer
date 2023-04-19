@@ -1,4 +1,6 @@
 
+@import '../../variables.scss';
+
 .column__list{
     height: calc(100% - 52px);
 
@@ -10,9 +12,8 @@
 
     background-color: rgb(232, 240, 254);
 }
-.column__item{
-        margin-bottom: 16px;
-}
+
 .column__title{
     text-align: center;
+        color: $text-color
 }

@@ -14,4 +14,9 @@ export interface IIssue {
 	created_at: string;
 	comments: number;
 	user: IUser;
+	number: number;
+}
+
+export interface IResponse extends IIssue {
+	status: number;
 }

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { IIssue, IRepoURI } from './types';
+import { IRepoURI, IResponse } from './types';
 
 export class GithubApi {
 	private static _instanse: GithubApi;
@@ -18,9 +18,9 @@ export class GithubApi {
 		return GithubApi._instanse;
 	}
 
-	public getTodos = async (req: IRepoURI): Promise<IIssue[]> => {
+	public getIssues = async (req: IRepoURI): Promise<IResponse[]> => {
 		const { owner, repoName } = req;
-		const { data } = await axios({
+		const { data, status } = await axios({
 			method: 'get',
 			url: `${owner}/${repoName}/issues`,
 			params: {
@@ -28,6 +28,6 @@ export class GithubApi {
 				per_page: 10,
 			},
 		});
-		return data;
+		return Object.assign(data, status);
 	};
 }
